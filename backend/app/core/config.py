@@ -1,19 +1,18 @@
 import os
 
 # Print available env var NAMES at startup (not values) for debugging
-_found = [k for k in os.environ if k in (
-    "COHERE_API_KEY", "DATABASE_URL", "SECRET_KEY",
-    "CHROMA_PERSIST_PATH", "CORS_ORIGINS", "ADMIN_EMAIL",
-    "ADMIN_PASSWORD", "PORT",
-)]
-_missing = [k for k in ("COHERE_API_KEY", "DATABASE_URL", "SECRET_KEY") if k not in os.environ]
+_expected = ("COHERE_API_KEY", "APP_DATABASE_URL", "SECRET_KEY",
+             "CHROMA_PERSIST_PATH", "CORS_ORIGINS", "ADMIN_EMAIL", "ADMIN_PASSWORD")
+_found = [k for k in os.environ if k in _expected]
+_missing = [k for k in ("COHERE_API_KEY", "APP_DATABASE_URL", "SECRET_KEY") if k not in os.environ]
 print(f"[config] ENV vars found: {_found}", flush=True)
 print(f"[config] Required vars MISSING: {_missing}", flush=True)
 
 
 class Settings:
     cohere_api_key: str = os.environ.get("COHERE_API_KEY", "")
-    database_url: str = os.environ.get("DATABASE_URL", "sqlite:///./telkom_chatbot.db")
+    # APP_DATABASE_URL avoids conflict with Railway's reserved DATABASE_URL
+    database_url: str = os.environ.get("APP_DATABASE_URL", "sqlite:///./telkom_chatbot.db")
     secret_key: str = os.environ.get("SECRET_KEY", "fallback-secret-for-debug-only")
 
     chroma_persist_path: str = os.environ.get("CHROMA_PERSIST_PATH", "./chroma_data")
