@@ -1,13 +1,21 @@
 import os
 
+# Print available env var NAMES at startup (not values) for debugging
+_found = [k for k in os.environ if k in (
+    "COHERE_API_KEY", "DATABASE_URL", "SECRET_KEY",
+    "CHROMA_PERSIST_PATH", "CORS_ORIGINS", "ADMIN_EMAIL",
+    "ADMIN_PASSWORD", "PORT",
+)]
+_missing = [k for k in ("COHERE_API_KEY", "DATABASE_URL", "SECRET_KEY") if k not in os.environ]
+print(f"[config] ENV vars found: {_found}", flush=True)
+print(f"[config] Required vars MISSING: {_missing}", flush=True)
+
 
 class Settings:
-    # Required
-    cohere_api_key: str = os.environ["COHERE_API_KEY"]
-    database_url: str = os.environ["DATABASE_URL"]
-    secret_key: str = os.environ["SECRET_KEY"]
+    cohere_api_key: str = os.environ.get("COHERE_API_KEY", "")
+    database_url: str = os.environ.get("DATABASE_URL", "sqlite:///./telkom_chatbot.db")
+    secret_key: str = os.environ.get("SECRET_KEY", "fallback-secret-for-debug-only")
 
-    # Optional with defaults
     chroma_persist_path: str = os.environ.get("CHROMA_PERSIST_PATH", "./chroma_data")
     algorithm: str = os.environ.get("ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
@@ -17,7 +25,6 @@ class Settings:
     admin_password: str = os.environ.get("ADMIN_PASSWORD", "changeme123")
     cors_origins: str = os.environ.get("CORS_ORIGINS", "http://localhost:3000")
 
-    # Cohere model config
     cohere_embed_model: str = "embed-multilingual-v3.0"
     cohere_chat_model: str = "command-r-plus-08-2024"
     chunk_size: int = 400
