@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "/api" });
+// Call Railway backend directly from browser (bypasses Vercel proxy restriction)
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const api = axios.create({ baseURL: `${BASE_URL}/api` });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
