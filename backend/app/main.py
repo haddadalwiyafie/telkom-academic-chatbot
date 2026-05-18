@@ -56,3 +56,15 @@ app.include_router(admin.router, prefix="/api")
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/api/debug/env")
+def debug_env():
+    import os
+    keys = sorted(os.environ.keys())
+    cohere_set = bool(os.environ.get("COHERE_TOKEN", ""))
+    return {
+        "all_keys": keys,
+        "cohere_token_set": cohere_set,
+        "cohere_token_prefix": os.environ.get("COHERE_TOKEN", "")[:8] or "EMPTY",
+    }
