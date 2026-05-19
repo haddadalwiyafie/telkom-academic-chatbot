@@ -19,11 +19,20 @@ export default function UserPage() {
   const [activeTab, setActiveTab] = useState('new-chat');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>(() => {
+    try {
+      const stored = localStorage.getItem('chat_sessions');
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<number | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try { localStorage.setItem('chat_sessions', JSON.stringify(chatSessions)); } catch {}
+  }, [chatSessions]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -35,6 +44,11 @@ export default function UserPage() {
   const handleSelectSession = (id: string) => {
     setCurrentChatId(id);
     setActiveTab('new-chat');
+  };
+
+  const handleDeleteSession = (id: string) => {
+    setChatSessions((prev) => prev.filter((s) => s.id !== id));
+    if (currentChatId === id) setCurrentChatId(null);
   };
 
   const currentMessages = chatSessions.find((s) => s.id === currentChatId)?.messages || [];
@@ -110,7 +124,7 @@ export default function UserPage() {
               <ChatMessages messages={currentMessages} isLoading={isLoading} />
             )
           ) : activeTab === 'history' ? (
-            <HistoryPage chatSessions={chatSessions} onSelectSession={handleSelectSession} onClearHistory={() => setChatSessions([])} />
+            <HistoryPage chatSessions={chatSessions} onSelectSession={handleSelectSession} onDeleteSession={handleDeleteSession} onClearHistory={() => { setChatSessions([]); setCurrentChatId(null); }} />
           ) : activeTab === 'settings' ? (
             <SettingsPage onClearHistory={() => setChatSessions([])} />
           ) : (

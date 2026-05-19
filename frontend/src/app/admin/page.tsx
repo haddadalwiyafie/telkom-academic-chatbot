@@ -19,13 +19,22 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('admin-dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>(() => {
+    try {
+      const stored = localStorage.getItem('admin_chat_sessions');
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<number | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentMessages = chatSessions.find((s) => s.id === currentChatId)?.messages || [];
+
+  useEffect(() => {
+    try { localStorage.setItem('admin_chat_sessions', JSON.stringify(chatSessions)); } catch {}
+  }, [chatSessions]);
 
   useEffect(() => {
     if (scrollRef.current && currentMessages.length > 0) {
