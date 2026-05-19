@@ -45,11 +45,24 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
                 }`}
               >
                 <div className={`prose max-w-none break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${message.role === 'user' ? 'prose-sm md:prose-base prose-p:text-bg-deep prose-headings:text-bg-deep prose-strong:text-bg-deep prose-a:text-bg-deep' : 'prose-sm md:prose-base prose-invert prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:border-0 prose-pre:p-0 prose-p:text-text-bright'}`}>
-                  <ReactMarkdown 
+                  <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkMath]}
                     rehypePlugins={[rehypeKatex]}
                     components={{
-                      code: CodeBlock
+                      code: CodeBlock,
+                      table: ({ children }) => (
+                        <div className="overflow-x-auto w-full my-2 rounded-lg border border-white/10">
+                          <table className="border-collapse text-xs w-max min-w-full">{children}</table>
+                        </div>
+                      ),
+                      thead: ({ children }) => <thead className="bg-white/10">{children}</thead>,
+                      th: ({ children }) => (
+                        <th className="border border-white/10 px-3 py-2 text-left font-semibold whitespace-nowrap text-primary-teal">{children}</th>
+                      ),
+                      td: ({ children }) => (
+                        <td className="border border-white/10 px-3 py-2 whitespace-nowrap">{children}</td>
+                      ),
+                      tr: ({ children }) => <tr className="even:bg-white/5">{children}</tr>,
                     }}
                   >
                       {message.role === 'model' ? normalizeResponse(message.text) : message.text}
