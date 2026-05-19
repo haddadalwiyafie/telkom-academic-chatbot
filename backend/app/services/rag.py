@@ -3,6 +3,7 @@ RAG pipeline menggunakan Cohere Command R+ dengan grounded citations.
 Cohere secara native mengembalikan citations (document_ids) dari dokumen yang diberikan.
 """
 import asyncio
+import re
 from typing import Any, Optional
 import chromadb
 import cohere
@@ -75,34 +76,60 @@ async def delete_document_from_vector_store(chroma_ids: list[str]) -> None:
 
 
 async def retrieve(query: str, top_k: int | None = None) -> list[dict[str, Any]]:
-    """Semantic search — returns ranked chunks with metadata."""
+    """Semantic search with keyword re-ranking — returns ranked chunks with metadata."""
     k = top_k or settings.top_k_retrieval
+    # Fetch more candidates so re-ranking can promote keyword matches
+    candidates = min(k * 3, 30)
     query_embedding = await embed_texts([query], input_type="search_query")
 
     collection = await asyncio.to_thread(get_chroma)
     results = await asyncio.to_thread(
         collection.query,
         query_embeddings=query_embedding,
-        n_results=k,
+        n_results=candidates,
         include=["documents", "metadatas", "distances"],
     )
+
+    # Extract uppercase acronyms and significant words from query for keyword boosting
+    query_upper = query.upper()
+    acronyms = set(re.findall(r'\b[A-Z]{2,}\b', query_upper))
+    # Also include lowercase significant words (>=4 chars, not stopwords)
+    stopwords = {'yang', 'dan', 'atau', 'untuk', 'dengan', 'dalam', 'adalah', 'pada', 'apa', 'bagaimana', 'berapa', 'tentang'}
+    keywords = {w.lower() for w in query.split() if len(w) >= 4 and w.lower() not in stopwords}
 
     chunks = []
     for i, chroma_id in enumerate(results["ids"][0]):
         meta = results["metadatas"][0][i]
+        text = results["documents"][0][i]
+        semantic_score = 1 - results["distances"][0][i]
+
+        # Keyword boost: exact acronym match is most important (e.g. IPK vs IKK)
+        boost = 0.0
+        text_upper = text.upper()
+        text_lower = text.lower()
+        for acronym in acronyms:
+            # Use word boundary check to avoid partial matches
+            if re.search(r'\b' + re.escape(acronym) + r'\b', text_upper):
+                boost += 0.15
+        for kw in keywords:
+            if kw in text_lower:
+                boost += 0.05
+
         chunks.append(
             {
                 "chroma_id": chroma_id,
-                "text": results["documents"][0][i],
+                "text": text,
                 "document_id": meta["document_id"],
                 "doc_number": meta["doc_number"],
                 "title": meta["title"],
                 "page_number": meta["page_number"],
                 "source_type": meta["source_type"],
-                "score": 1 - results["distances"][0][i],  # cosine similarity
+                "score": semantic_score + boost,
             }
         )
-    return chunks
+
+    chunks.sort(key=lambda x: x["score"], reverse=True)
+    return chunks[:k]
 
 
 async def chat_with_rag(
@@ -155,10 +182,12 @@ async def chat_with_rag(
         preamble=(
             "Anda adalah asisten akademik Telkom University yang membantu mahasiswa memahami peraturan dan kebijakan akademik. "
             "Jawab pertanyaan secara lengkap dan detail berdasarkan dokumen yang diberikan dalam Bahasa Indonesia. "
-            "Sertakan SEMUA informasi relevan dari dokumen: angka, nilai, IPK, SKS, syarat, prosedur, dan kriteria. "
-            "Gunakan format yang rapi: bullet points untuk daftar, tabel Markdown untuk data tabular, dan rumus jika perlu. "
-            "Jangan menghilangkan informasi penting meskipun terasa teknis. "
-            "Di akhir jawaban, sebutkan sumber dokumen dan halaman yang digunakan."
+            "PENTING — perhatikan singkatan dengan teliti: IPK (Indeks Prestasi Kumulatif), IPS (Indeks Prestasi Semester), "
+            "SKS (Satuan Kredit Semester), dan singkatan lain berbeda maknanya; JANGAN mencampuradukkan atau menggantikan satu dengan yang lain. "
+            "Jika pengguna bertanya tentang IPK, jawab HANYA tentang IPK, bukan IKK, IPS, atau singkatan lain. "
+            "Sertakan SEMUA informasi relevan dari dokumen: angka, nilai, syarat minimum, prosedur, dan kriteria yang spesifik. "
+            "Gunakan format yang rapi: bullet points untuk daftar, tabel Markdown untuk data tabular. "
+            "Jika informasi tidak tersedia dalam dokumen, katakan bahwa Anda tidak menemukan informasi tersebut."
         ),
     )
 
