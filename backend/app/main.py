@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +11,9 @@ from app.api import auth, chat, admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Ensure required directories exist (important when using Railway volumes)
+    os.makedirs(settings.upload_dir, exist_ok=True)
+    os.makedirs(settings.chroma_persist_path, exist_ok=True)
     # Create tables
     Base.metadata.create_all(bind=engine)
     # Seed first admin account
