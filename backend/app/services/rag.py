@@ -187,6 +187,7 @@ async def chat_with_rag(
             "Jika pengguna bertanya tentang IPK, jawab HANYA tentang IPK, bukan IKK, IPS, atau singkatan lain. "
             "Sertakan SEMUA informasi relevan dari dokumen: angka, nilai, syarat minimum, prosedur, dan kriteria yang spesifik. "
             "Gunakan format yang rapi: bullet points untuk daftar, tabel Markdown untuk data tabular. "
+            "JANGAN menambahkan bagian 'Sumber' atau daftar referensi di akhir jawaban — sistem akan menampilkannya secara otomatis. "
             "Jika informasi tidak tersedia dalam dokumen, katakan bahwa Anda tidak menemukan informasi tersebut."
         ),
     )
