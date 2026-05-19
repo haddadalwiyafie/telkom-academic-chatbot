@@ -29,21 +29,29 @@ export default function ChatInterface() {
     setInput("");
     setLoading(true);
 
-    try {
-      const { data } = await chatApi.send(text, sessionId);
-      setSessionId(data.session_id);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.answer, citations: data.citations },
-      ]);
-    } catch {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, 2000 * attempt));
+        const { data } = await chatApi.send(text, sessionId);
+        setSessionId(data.session_id);
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: data.answer, citations: data.citations },
+        ]);
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    if (lastError) {
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Maaf, terjadi kesalahan. Silakan coba lagi." },
       ]);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const handleKey = (e: React.KeyboardEvent) => {

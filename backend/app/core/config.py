@@ -24,7 +24,7 @@ class Settings:
     cohere_chat_model: str = "command-r-plus-08-2024"
     chunk_size: int = 400
     chunk_overlap: int = 50
-    top_k_retrieval: int = 6
+    top_k_retrieval: int = 10
 
 
 settings = Settings()
