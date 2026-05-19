@@ -51,18 +51,21 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
                     components={{
                       code: CodeBlock,
                       table: ({ children }) => (
-                        <div className="overflow-x-auto w-full my-2 rounded-lg border border-white/10">
-                          <table className="border-collapse text-xs w-max min-w-full">{children}</table>
+                        <div className="not-prose overflow-x-auto w-full my-3 rounded-lg border border-white/10 text-xs">
+                          <table style={{ borderCollapse: 'collapse', width: 'max-content', minWidth: '100%' }}>{children}</table>
                         </div>
                       ),
-                      thead: ({ children }) => <thead className="bg-white/10">{children}</thead>,
+                      thead: ({ children }) => <thead style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>{children}</thead>,
+                      tbody: ({ children }) => <tbody>{children}</tbody>,
                       th: ({ children }) => (
-                        <th className="border border-white/10 px-3 py-2 text-left font-semibold whitespace-nowrap text-primary-teal">{children}</th>
+                        <th style={{ border: '1px solid rgba(255,255,255,0.1)', padding: '8px 12px', textAlign: 'left', fontWeight: 600, whiteSpace: 'nowrap', color: '#2dd4bf' }}>{children}</th>
                       ),
                       td: ({ children }) => (
-                        <td className="border border-white/10 px-3 py-2 whitespace-nowrap">{children}</td>
+                        <td style={{ border: '1px solid rgba(255,255,255,0.1)', padding: '7px 12px', whiteSpace: 'nowrap' }}>{children}</td>
                       ),
-                      tr: ({ children }) => <tr className="even:bg-white/5">{children}</tr>,
+                      tr: ({ children, ...props }) => (
+                        <tr style={{ backgroundColor: (props as any).node?.position?.start?.line % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>{children}</tr>
+                      ),
                     }}
                   >
                       {message.role === 'model' ? normalizeResponse(message.text) : message.text}
