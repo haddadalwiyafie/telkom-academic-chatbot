@@ -74,15 +74,6 @@ export default function UserPage() {
     setChatSessions(sessionList);
     setIsLoading(true);
 
-    const botMessageId = (Date.now() + 1).toString();
-    setChatSessions((prev) =>
-      prev.map((s) =>
-        s.id === activeSessionId
-          ? { ...s, messages: [...s.messages, { id: botMessageId, role: 'model', text: '' }] }
-          : s
-      )
-    );
-
     try {
       const result = await chatApi.send(text.trim(), sessionId);
       setSessionId(result.session_id);
@@ -93,20 +84,15 @@ export default function UserPage() {
           ).join('\n')
         : '';
 
+      const botMessage: Message = { id: (Date.now() + 1).toString(), role: 'model', text: result.answer + citationText };
       setChatSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? { ...s, messages: s.messages.map((m) => m.id === botMessageId ? { ...m, text: result.answer + citationText } : m) }
-            : s
-        )
+        prev.map((s) => s.id === activeSessionId ? { ...s, messages: [...s.messages, botMessage] } : s)
       );
     } catch (error) {
       const errorText = error instanceof Error ? `Terjadi kesalahan: ${error.message}` : 'Terjadi kesalahan saat menghubungi server.';
+      const errMessage: Message = { id: (Date.now() + 1).toString(), role: 'model', text: errorText };
       setChatSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId
-            ? { ...s, messages: s.messages.map((m) => m.id === botMessageId ? { ...m, text: errorText } : m) }
-            : s
+        prev.map((s) => s.id === activeSessionId ? { ...s, messages: [...s.messages, errMessage] } : s
         )
       );
     } finally {
