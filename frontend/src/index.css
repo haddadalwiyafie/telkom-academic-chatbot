@@ -35,10 +35,10 @@
     --surface-dark: #ffffff;
     --bg-sidebar: #e2e8f0;
     --primary-teal: #2AA086;
-    --primary-teal-light: #68E6A8;
+    --primary-teal-light: #068060;
     --primary-teal-glow: rgba(42, 160, 134, 0.3);
-    --text-dim: #000000;
-    --text-bright: #000000;
+    --text-dim: #4a5568;
+    --text-bright: #1a202c;
   }
 
   body {
@@ -48,6 +48,18 @@
 
 .glass-panel {
   @apply bg-surface-dark/40 backdrop-blur-md border border-text-dim/20;
+}
+
+/* Prose readable in both dark and light themes */
+:root:not([data-theme='light']) .prose-themed {
+  color: var(--text-bright);
+}
+:root:not([data-theme='light']) .prose-themed :is(p, li, td, th, strong, em, h1, h2, h3, h4) {
+  color: var(--text-bright);
+}
+[data-theme='light'] .prose-themed,
+.light .prose-themed {
+  color: var(--text-bright);
 }
 
 .custom-scrollbar::-webkit-scrollbar {

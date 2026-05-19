@@ -11,7 +11,8 @@ import { UploadPage } from '../../components/UploadPage';
 import { HelpModal } from '../../components/HelpModal';
 import { Message, ChatSession } from '../../types';
 import { useApp } from '../../components/AppContext';
-import { chatApi, Citation } from '../../services/api';
+import { chatApi } from '../../services/api';
+import { formatCitations } from '../../utils/formatCitations';
 
 export default function AdminPage() {
   const { t } = useApp();
@@ -57,11 +58,7 @@ export default function AdminPage() {
       const result = await chatApi.send(text.trim(), sessionId);
       setSessionId(result.session_id);
 
-      const citationText = result.citations.length > 0
-        ? '\n\n---\n**Sumber:**\n' + result.citations.map((c: Citation) =>
-            `- **${c.title}**${c.doc_number ? ` (${c.doc_number})` : ''}${c.page ? `, Hal. ${c.page}` : ''}`
-          ).join('\n')
-        : '';
+      const citationText = formatCitations(result.citations);
 
       const botMessage: Message = { id: (Date.now() + 1).toString(), role: 'model', text: result.answer + citationText };
       setChatSessions((prev) =>

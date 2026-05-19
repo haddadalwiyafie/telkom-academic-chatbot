@@ -44,7 +44,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
                     : 'bg-surface-dark text-text-bright border border-white/5 rounded-bl-sm'
                 }`}
               >
-                <div className={`prose max-w-none break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${message.role === 'user' ? 'prose-sm md:prose-base prose-p:text-bg-deep prose-headings:text-bg-deep prose-strong:text-bg-deep prose-a:text-bg-deep' : 'prose-sm md:prose-base prose-invert prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:border-0 prose-pre:p-0 prose-p:text-text-bright'}`}>
+                <div className={`prose max-w-none break-words [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${message.role === 'user' ? 'prose-sm md:prose-base prose-p:text-bg-deep prose-headings:text-bg-deep prose-strong:text-bg-deep prose-a:text-bg-deep' : 'prose-themed prose-sm md:prose-base prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:border-0 prose-pre:p-0'}`}>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkMath]}
                     rehypePlugins={[rehypeKatex]}
