@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from pydantic import BaseModel
@@ -153,20 +152,20 @@ def get_document(
 
 # ── background task wrappers (need own DB session) ─────────────────────────────
 
-def _run_ingest_pdf(document_id: int) -> None:
+async def _run_ingest_pdf(document_id: int) -> None:
     from app.core.database import SessionLocal
     db = SessionLocal()
     try:
-        asyncio.run(ingest_pdf(document_id, db))
+        await ingest_pdf(document_id, db)
     finally:
         db.close()
 
 
-def _run_ingest_web(document_id: int) -> None:
+async def _run_ingest_web(document_id: int) -> None:
     from app.core.database import SessionLocal
     db = SessionLocal()
     try:
-        asyncio.run(ingest_web(document_id, db))
+        await ingest_web(document_id, db)
     finally:
         db.close()
 
